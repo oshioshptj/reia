@@ -25,19 +25,16 @@
 <script>
 const APP_ID = "1004732110586681240";
 
-async function check() {
+function check() {
   const jan = document.getElementById("jan").value;
   const cost = Number(document.getElementById("cost").value);
   const result = document.getElementById("result");
 
   result.innerHTML = "検索中…";
 
-  const url = `https://app.rakuten.co.jp/services/api/IchibaItem/Search/20170706?applicationId=${APP_ID}&jan=${jan}&hits=1&sort=+itemPrice`;
+  const callbackName = "rakutenCallback_" + Date.now();
 
-  try {
-    const res = await fetch(url);
-    const data = await res.json();
-
+  window[callbackName] = function(data) {
     if (!data.Items || data.Items.length === 0) {
       result.innerHTML = "商品が見つかりません";
       return;
@@ -61,9 +58,20 @@ async function check() {
       利益：¥${profit}<br><br>
       <b>${label}</b>
     `;
-  } catch (e) {
-    result.innerHTML = "エラーが発生しました";
-  }
+
+    delete window[callbackName];
+  };
+
+  const script = document.createElement("script");
+  script.src =
+    "https://app.rakuten.co.jp/services/api/IchibaItem/Search/20170706"
+    + "?applicationId=" + APP_ID
+    + "&jan=" + jan
+    + "&hits=1"
+    + "&sort=+itemPrice"
+    + "&callback=" + callbackName;
+
+  document.body.appendChild(script);
 }
 </script>
 
