@@ -26,7 +26,7 @@
 const APP_ID = "1004732110586681240";
 
 function check() {
-  const jan = document.getElementById("jan").value;
+  const input = document.getElementById("jan").value.trim();
   const cost = Number(document.getElementById("cost").value);
   const result = document.getElementById("result");
 
@@ -36,7 +36,7 @@ function check() {
 
   window[callbackName] = function(data) {
     if (!data.Items || data.Items.length === 0) {
-      result.innerHTML = "商品が見つかりません";
+      result.innerHTML = "商品が見つかりません（楽天にJAN/商品名未登録）";
       return;
     }
 
@@ -62,18 +62,24 @@ function check() {
     delete window[callbackName];
   };
 
-  const script = document.createElement("script");
-  script.src =
+  // 🔽 JANか商品名か自動判定
+  const isJan = /^\d{8,13}$/.test(input);
+
+  let src =
     "https://app.rakuten.co.jp/services/api/IchibaItem/Search/20170706"
     + "?applicationId=" + APP_ID
-    + "&jan=" + jan
     + "&hits=1"
     + "&sort=+itemPrice"
     + "&callback=" + callbackName;
 
+  if (isJan) {
+    src += "&jan=" + input;
+  } else {
+    src += "&keyword=" + encodeURIComponent(input);
+  }
+
+  const script = document.createElement("script");
+  script.src = src;
   document.body.appendChild(script);
 }
 </script>
-
-</body>
-</html>
